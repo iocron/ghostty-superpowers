@@ -1,0 +1,94 @@
+# This is the configuration file for Ghostty.
+#
+# This template file has been automatically created at the following path:
+# ~/.config/ghostty/config
+#
+# The template does not set any default options, since Ghostty ships
+# with sensible defaults for all options. Users should only need to set
+# options that they want to change from the default.
+#
+# Run `ghostty +show-config --default --docs` to view a list of
+# all available config options and their default values.
+#
+# Additionally, each config option is also explained in detail
+# on Ghostty's website, at https://ghostty.org/docs/config.
+#
+# Ghostty can reload the configuration while running by using the menu
+# options or the bound key (default: Command + Shift + comma on macOS and
+# Control + Shift + comma on other platforms). Not all config options can be
+# reloaded while running; some only apply to new windows and others may require
+# a full restart to take effect.
+
+# Config syntax crash course
+# ==========================
+# # The config file consists of simple key-value pairs,
+# # separated by equals signs.
+# font-family = Iosevka
+# window-padding-x = 2
+#
+# # Spacing around the equals sign does not matter.
+# # All of these are identical:
+# key=value
+# key= value
+# key =value
+# key = value
+#
+# # Any line beginning with a # is a comment. It's not possible to put
+# # a comment after a config option, since it would be interpreted as a
+# # part of the value. For example, this will have a value of "#123abc":
+# background = #123abc
+#
+# # Empty values are used to reset config keys to default.
+# key =
+#
+# # Some config options have unique syntaxes for their value,
+# # which is explained in the docs for that config option.
+# # Just for example:
+# resize-overlay-duration = 4s 200ms
+
+# If you use "font-family = Hack" then install font using `brew install font-hack-nerd-font`
+
+# THEME & FONT SETTINGS
+adjust-cursor-thickness = 4
+# command-palette-entry = title:Reset Font Style, action:csi:0m
+cursor-opacity = 0.85
+font-family = Hack
+font-size = 14
+# maximize = true
+quick-terminal-position = center
+# shell-integration = detect
+shell-integration = zsh
+# shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo
+split-divider-color = #202020
+theme = Github Dark Default
+unfocused-split-opacity = 0.85
+window-padding-x = 15, 5
+window-padding-y = 5, 15
+window-padding-balance = false
+window-save-state = always
+# window-titlebar-background = #1F2430
+# window-titlebar-foreground = #2C3856
+
+# MY CUSTOM KEYMAPS
+keybind = super+j=goto_split:next
+keybind = super+k=goto_split:previous
+keybind = super+l=clear_screen
+keybind = super+b=text:lazygit\n
+
+# keybind = ctrl+l=text:clear\x0d
+# keybind = ctrl+p=text:\x1bp
+# keybind = ctrl+a=write_scrollback_file:open
+
+# Disable screen dump keybindings
+keybind = super+shift+j=unbind
+keybind = super+alt+shift+j=unbind
+keybind = super+ctrl+shift+j=unbind
+
+# WORKAROUND/FIX (https://github.com/ghostty-org/ghostty/issues/10749):
+# (see also: https://prokopov.me/posts/ghostty-remap-keys/)
+keybind = super+v=paste_from_clipboard
+keybind = super+c=copy_to_clipboard
+
+# WORKAROUND/FIX - Shift+Enter/Return causing 2;13~ sequence characters (not always needed)
+# keybind = shift+enter=text:\n
+

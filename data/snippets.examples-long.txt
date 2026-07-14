@@ -1,0 +1,247 @@
+7zz a -p -mhe {{argument_1}}.7z {{argument_2}} ## 7z - Compress and Encrypt File/Folder with AES-256 ## You can install 7zz with: brew install 7-zip
+7zz x FILENAME.7z ## Extract 7zip file
+
+aws ce get-cost-and-usage --time-period Start={{argument_1}},End={{argument_2}} --granularity MONTHLY --metrics \"BlendedCost\" --group-by Type=DIMENSION,Key=USAGE_TYPE | jq '.ResultsByTime[].Groups[] | select(.Metrics.BlendedCost.Amount | tonumber >= 1) | {UsageType: .Keys[0], BlendedCost: .Metrics.BlendedCost.Amount}' ## aws get usage costs
+aws configure sso ## Setup AWS CLI SSO Login
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue={{argument_1}} --max-results 50 --no-cli-pager --output json --start-time \"{{argument_2}}T00:00:00Z\" --end-time \"{{argument_3}}T23:59:59Z\" ## aws - Cloudtrail lookup-events of specific attribute
+aws cloudtrail lookup-events \   --lookup-attributes AttributeKey=EventName,AttributeValue=ChangeResourceRecordSets \   --start-time \"$(date -u -v-30d '+%Y-%m-%dT%H:%M:%SZ')\" \   --end-time \"$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" \   --region us-east-1 \   --no-cli-pager ## aws - Cloudtrail lookup-events route53 last 30 days
+
+aws ec2 describe-instance-types --query 'InstanceTypes[].[InstanceType, NetworkInfo.NetworkPerformance, NetworkInfo.NetworkCards[0].BaselineBandwidthInGbps, VCpuInfo.DefaultVCpus, MemoryInfo.SizeInMiB] | sort_by(@,&[2])' --output table --no-cli-pager ## aws ec2 - describe/list best instances with cpu, memory, network bandwidth
+aws eks update-kubeconfig --name {{eks-cluster-name}} --region eu-central-1 --dry-run ## aws eks - get kubeconfig of a cluster
+aws eks update-kubeconfig --name {{eks-cluster-name}} --region eu-central-1 ## aws eks - get kubeconfig of a cluster + update/apply to your local kubeconfig
+aws elasticbeanstalk describe-configuration-settings --application-name {{argument_1}} --environment-name {{argument_2}} ## aws - elasticbeanstalk get deployment configuration ## This command retrieves the configuration settings for a specific Elastic Beanstalk environment
+aws identitystore create-group --identity-store-id \"{{argument_1}}\" --display-name \"{{argument_2}}\" ## aws identitystore create new group
+aws identitystore describe-user --identity-store-id d-9967700fe8 --user-id \"133408c2-f051-70f8-1974-64575854ff4b\" ## aws IdentityCenter - describe-user
+aws route53 list-resource-record-sets --no-cli-auto-prompt --hosted-zone-id {{argument_1}} --query \"ResourceRecordSets[?Type=='A' || Type=='CNAME' || Type=='AAAA'].{Name: Name, Value: ResourceRecords[0].Value}\" --output json ## aws route53 - get all dns records with values
+aws s3 cp --recursive ./{{argument_1}}/ s3://{{argument_2}}/ ## aws - S3 copy local files/dirs to bucket
+aws s3 cp s3://{{argument_1}} {{argument_2}} --recursive --force-glacier-transfer ## aws - S3 download from Bucket (even from glacier)
+aws s3 ls ## aws - S3 list all s3 buckets
+aws s3 ls s3://{{argument_1}}/{{argument_2}}/ ## aws - S3 list contents of folder/path
+aws s3 mv s3://{{argument_1}}/somepath/myfolder/ s3://{{argument_1}}/otherpath/myfolder/ --recursive ## aws - S3 move folder to another folder
+aws s3 sync data/dirname/ s3://mybucketname123/mypath/dirname/ ## aws - S3 sync local folder to bucket
+aws s3 sync s3://{{argument_1}}/ s3://{{argument_2}}/ ## aws - S3 sync from bucket A to bucket B
+aws ssm start-session --target {{argument_1}} ## aws ssm - Connect to EC2 instance with SessionManager ## Or define a simple shortcut function in /.zshrc or similar with: function ssm() { aws ssm start-session --target \"$1\"; }
+aws wafv2 list-tags-for-resource --resource-arn {{argument_1}} --region us-east-1 --no-cli-pager ## aws wafv2 - list tags for a resource
+aws wafv2 list-web-acls --scope CLOUDFRONT --region us-east-1 --no-cli-pager ## aws wafv2 list-web-acls (cloudfront)
+aws wafv2 tag-resource \     --region=us-east-1 \     --resource-arn {{ARN}} \     --tags  Key=customer,Value={{customerName}}  Key=project,Value={{projectName}}  Key=team,Value={{teamName}}  Key=resource_type,Value=waf  Key=stage,Value={{stagingMode}} ## aws wafv2 tag-resource
+
+brew autoremove brew cleanup ## brew - cleanup old stuff
+brew deps --tree --installed {{packagename}} ## brew - show single package with dependency tree
+brew deps --tree --installed ## brew - show all packages with dependency tree
+brew info {{packagename}} ## brew - show info about a package
+brew install {{packagename}} ## brew - install a package
+brew install colima nerdctl ## Install containerd/colima and nerdctl on MacOS ## (you need to install colima first, e.g. brew install colima)
+brew install font-hack-nerd-font ## Install best icon fonts - nerdfont, hack, ..
+brew ls ## brew - list installed packages
+brew outdated ## brew - list upgradable/outdated packages
+brew rm {{packagename}} ## brew - uninstall a package
+brew uses --installed packagename ## brew - see what other packages depend on it
+brew search {{packagename}} ## brew - search package
+brew services start colima ## Enable/autostart colima (containerd) service
+
+bun pm ls ## Show node package dependencies (1th-level)
+bun tsc --noEmit --skipLibCheck ## bun - run typescript compiler checks (+skipLibCheck) ## Skip type checking of .d.ts declaration files (usually library type definitions)
+bun tsc --noEmit ## bun - run typescript compiler checks
+
+cat /etc/resolv.conf ## dns - show dns resolver config
+cat -v ## Debug keyboard and control characters, keymaps/shortcuts, etc.
+ccexplorer get aws -g DIMENSION=OPERATION -s 2024-02-01 -e 2024-02-28 -l -m MONTHLY | grep -v '0.0' ## aws cost explorer (get costs by OPERATION)
+certigo connect {{argument_1}} ## certificates - check if a domain cert is valid
+cloc --vcs git . ## Count Lines of Code in current folder (ignore git files)
+colima template ## Edit colima vm template (cpu, disk, nw, ..) ## Lets you edit the default settings (e.g. cpu, disk, network, ..)  when starting a new VM with colima/containerd.
+curl -L --resolve {{argument_1}}:{{argument_2}}:{{argument_3}} {{argument_1}} ## curl - RESOLVE/TUNNEL through another HOST
+curl -Lo {{argument_1}} {{argument_2}} ## curl - Download file
+curl -o parca-agent -sL \"https://github.com/parca-dev/parca-agent/releases/download/v0.40.2/parca-agent_0.40.2_$(uname -s)_$(uname -m)\" && chmod u+x ./parca-agent ## parca agent - installer (one-liner)
+curl -s https://ollama.com/library | pup '#repo ul li h2 json{}' | jq -r '.[].text' ## curl+pup+jq (with css selector filter)
+curl -w 'Time to Connect: %{time_connect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n' -o /dev/null -s {{url}} ## curl page performance
+curl ifconfig.me ## sysops - Show my public IP ## Use \"curl -4 ifconfig.me\" to enforce IPv4 Check or \"curl -6 ifconfig.me\" to enforce IPv6 Check
+
+dig {{argument_1}} +noall +answer | awk '{print $1, $5}' | grep -vE '^;' ## dig domain dns (short)
+dig {{argument_1}} +short | head -1 ## dig domain dns (short, 1 result)
+dig +short TXT {{domainName}} ## dig short TXT domain
+dig TXT _dmarc.{{domain}} | grep DMARC ## dig - Mailcheck DMARC
+dig TXT {{domain}} | grep spf ## dig - Mailcheck SPF
+dig TXT {{mailProviderPrefix}}._domainkey.{{domain}} | grep DKIM ## dig - Mailcheck DKIM
+
+docker exec -it {{argument_4}} psql postgresql://{{argument_1}}:{{argument_2}}@postgres:5432/{{argument_3}} ## docker test postgres sql connection
+docker run --network=\"host\" --dns=\"99.99.999.99\" curlimages/curl -LsSI --insecure https://gitlab.example.com ## Docker run image with custom DNS Server (+ignored tls)
+docker run --rm -it --privileged --pid host -p 7071:7071 -v /run:/run -v /boot:/boot -v /lib/modules:/lib/modules -v /sys/kernel/debug:/sys/kernel/debug -v /sys/fs/cgroup:/sys/fs/cgroup -v /sys/fs/bpf:/sys/fs/bpf -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket ghcr.io/parca-dev/parca-agent:v0.39.1 /bin/parca-agent  --remote-store-address={{argument_1}}:7070 --remote-store-insecure ## parca agent (docker) - setup
+docker run --rm -it mcr.microsoft.com/azure-cli bash -c \"curl -L -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x /usr/local/bin/jq && jq --version\" ## AzureCLI - Docker run with azure-cli with jq installed
+docker run --rm -p 7070:7070 ghcr.io/parca-dev/parca:v0.24.0 /parca ## parca server ui (docker) - setup monitoring ui on port 7070 ## https://www.parca.dev/docs/quickstart/?environment=container
+docker run --rm amazon/aws-cli:2.27.55 --version ## docker run aws cli
+docker run curlimages/curl -LsSI google.com ## Docker check if docker connection/network is working/reaching the internet
+docker volume ls ## docker - list all volumes
+docker volume rm {{argument_1}} ## docker - remove a volume
+
+df -h / ## Show disk space of root
+
+du -ah . | sort -rh | head -n 20 ## sysops - Top 20 Biggest Folders (du -ah command) ## optional: --max-depth=1 if only 1th-level needed
+du -ah . | sort -rh | head -n 50 ## sysops - Top 50 Biggest Files/Folders (du -ah)
+du -csh . ## sysops - Show size of current folder
+
+echo -e \"Text with Ansi Escape Codes / Color Codes: \033[33m39.47\033[39m\" | sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' ## echo sed - Remove ANSI Escape / Color codes from Text
+echo \"Test email body\" | mail -s \"Test email\" {{argument_1}} ## Mail - Send a Testmail
+ethtool -S eth0 ## network - query or control network driver and hardware settings 
+eza -lTL 2 ## sysops - eza ls -lah like and 2-level deep
+
+fd -HI \"{{argument_1}}\" ## fd - find a file (ignores .gitignore, search hidden files too)
+fd {{argument_1}} -X dirname ## fd search for string or file, but only return their dirname/path
+sudo fs_usage -w -f filesystem | grep '/Applications' ## catch filesystem activity (e.g. read/write of a app) for a specific path
+functions ## list/show all set functions available
+
+ghostty +list-keybinds ## show/list all ghostty keyboard shortcuts (keybinds)
+git --git-dir=\"${{path}}\" --no-pager grep -iHE \"{{searchStr}}\" HEAD -- . | sed 's/^\(.\{150\}\).*/\1.../' ## git - Search String/Regex in directory/history/head
+git commit --amend ## add staged changes to your last commit
+git clean -f ## git - remove/clean unstaged files
+git config user.email \"{{argument_1}}\" && git config user.name \"{{argument_2}}\" ## git config set new user.email and user.name (locally)
+git config --global core.pager "" ## Disable git pager globally
+git diff -- '*partialPath*' ## git diff but only for specific files/path
+git diff {{argument_1}} {{argument_2}} ## git diff between two files (also works without .git project)
+git diff HEAD~1 ## git diff to last commit
+git diff main..dev ## git diff between 2 branches
+git diff main example.json ## Show differences of a file (or by path) between current VS. main branch
+git diff --stat main dev ## git diff between 2 branches, but stats only
+git fetch --all ## fetch from all git repositories
+git fetch origin pull/1/head:pr-1 && git checkout pr-1 ## fetch+pull from a PR (Pull-Request), Replace pr-1 by the pr number you want to pull
+git ls-files ## git - ls-files (show all versioned/commited files)
+git push --tags ## git push tags ## Add --force if you need to overwrite a existing tag
+git push -u origin main ## git - push + set upstream (remote) tracking
+git remote -v ## git - show all remote urls
+git remote add origin {{remoteURL}} ## git - add new remote
+git rm --cached -r {{argument_1}} ## git rm - remove already versioned folder/files
+GIT_SSH_COMMAND='ssh -i ~/.ssh/{{argument_1}}' git clone {{argument_2}} ## git clone as another user with another ssh key
+gitlab-ci-local --variables-file .env --stage deploy ## gitlab-ci-local - Test gitlab pipeline locally (+with env vars)
+gitlab-runner exec docker build_node ## gitlab-runner exec docker runner (local) ## test a build step
+
+godot --check-only --script {{file-path-to-gd-script}} ## Godot - Syntax/Lint check for specific gd script (use full godot application path if not aliased)
+/Applications/Godot.app/Contents/MacOS/Godot --editor --path /PathToMyGodotProject ## Start Godot from terminal with custom project path on macos (--verbose for better debugging)
+
+go test -v ./... -run {{TestFunctionName}} ## misc - go test specific function/test
+go vet ./... ## go - check if any golang errors exist
+govulncheck ./... ## golang - check all dependencies for vulnerabilities ## (see https://github.com/golang/vuln)  How to install: 1. If you need to install:      go install golang.org/x/vuln/cmd/govulncheck@latest 2. Then add to your /.zshrc this:     export PATH=$(go env GOPATH)/bin:$PATH
+
+printf "## Add this to your ~/.ssh/config:\nHost *\n  PubkeyAuthentication yes\n  PubkeyAcceptedKeyTypes ssh-rsa\n  IdentitiesOnly yes\n  AddKeysToAgent yes\n  UseKeychain yes\n"
+
+ifconfig | grep 'inet ' | grep -v '127.0.0.1' ## network - show local ip address
+
+jira issue list --updated -30d -a$(jira me) -s~Done --order-by priority ## misc - jira-cli list all my open issues (last 30days)
+journalctl -u caddy --no-pager -n 50 ## caddy - show last 50 log entries (journalctl)
+journalctl -xefu {{servicename}} ## sysops - journalctl -xefu servicename ## optional: --no-pager if you want to skip interactive/notion mode and only output the logs -x can be omitted (used for verbose information)
+jq -r '(.[0] | keys_unsorted) as $keys | $keys, map([.[ $keys[] ]])[] | @csv' < {{argument_1}} > {{argument_2}} ## jq - convert json to csv file with csv headers
+jq -r 'map(. | [to_entries[] | .value]) | .[] | @csv' < {{argument_1}} > {{argument_2}} ## jq - convert json to csv file
+jq '[.[] | select(.ja4_fingerprint == \"{{xxxxxxxxxx_xxxxxxxxxxxx_xxxxxxxxxxxx}}\")]' ~/Projects/ja4db/ja4db.json ## ja4db - search ja4fingerprint ## Download the ja4db.json if not already done:  curl -o /Projects/ja4db/ja4db.json https://ja4db.com/api/read/
+jq '[group_by(.pipeline_id) | map({ pipeline_id: .[0].pipeline_id, total_job_duration: map(.job_duration) | add, pipeline_web_url: .[0].pipeline_web_url }) | sort_by(.total_job_duration) | reverse | limit(10; .[])]' reports/example.json ## jq - show top 10 entries with highest duration property
+jq 'sort_by(-.job_duration)' {{argument_1}} > {{argument_2}} ## jq - sort by specific field
+
+kill $(pgrep myprocessname) ## kill all processes by string (e.g. same as pkill nginx)
+pkill -x myproccessname ## kill all processes by explicit name, e.g. pkill -x nginx
+pkill myproccessname ## kill all processes by string, e.g. pkill nginx (will also kill nginx123)
+pgrep myproccessname ## show all processes by string, e.g. pgrep nginx (will also kill nginx123)
+
+kubectl --context={{contextName}} get namespaces ## kubectl - get/list all namespaces of a context
+kubectl cluster-info ## kubectl - get current cluster-info
+kubectl config get-contexts ## kubectl - get list of all contexts
+kubectl config use-context {{context_name}} ## kubectl - switch context
+kubectl get pods --all-namespaces -o custom-columns=\"NAMESPACE:.metadata.namespace,NAME:.metadata.name\" ## kubectl - get all pods with metadata of namespace + name
+kubectl port-forward --namespace monitoring service/loki-grafana 3000:80 ## grafana/loki port forward to localhost
+
+last -20 ## Show last 20 User Logins / ttys
+l ## ls shortcut
+launchctl setenv OLLAMA_ORIGINS \"chrome-extension://*\" ## Ollama (Desktop) - Enable chrome browsers access ## See also:  https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama You can unset OLLAMA_ORIGINS with this if needed:  launchctl unsetenv OLLAMA_ORIGINS
+lazygit
+lnav -r '{{serverName}}:/var/log/*' ## lnav - log analysis - remote server (lnav, recursive)
+lnav -r /var/log/* ## lnav - log analysis - local
+lsof -i :80 -i :443 ## network - lsof - show network connections on port http+https
+lsof -ti :{{argument_1}} | xargs kill -9 ## kill process by port number
+sudo lsof -p "$(pgrep -d, -f 'CrossOver|wine')" 2>/dev/null ## Show all details about a running application (e.g. read/writes/network)
+
+nc -zv <SOMEIP> <PORTRANGE> ## network - check a open port on host (e.g. nc -zv 192.168.1.10 1-1000)
+nerdctl build -t {{argument_1}}:{{argument_2}} . ## nerdctl - build a new image with specific tag from current folder ## (a Dockerfile needs to exist in same directory)
+nerdctl compose down ## nerdctl - compose down
+nerdctl exec -it {{argument_1}} ping {{argument_2}} ## nerdctl - check if container can reach another container (ping)
+nerdctl exec -it {{argument_1}} sh ## nerdctl - login into a container with shell
+nerdctl run -it {{argument_1}} sh ## nerdctl - run and login-into new container directly (once)
+nerdctl run -it --name ubuntu24 ubuntu:24.04 /bin/bash ## nerdctl - Run Ubuntu 24 directly
+nerdctl system prune -a ## nerdctl - removes all stopped containers, networks, images, build caches
+netstat -an | grep {{argument_1}} ## netstat - Check Connections on PORT
+
+nmap -p 80,443 -sV --version-all {{argument_1}} ## nmap - aggressive search for webserver version
+nmap -p- -sV --version-all {{argument_1}} ## nmap - scan all ports + aggressive version probing
+
+nohup {{argument_1}} > /dev/null 2>&1 & ## Run command fully in Background ## Tip: Use "jobs" command to list running jobs (of current session)
+nohup sudo ./parca-agent --node={{argument_1}} --remote-store-address={{argument_2}} > parca-agent.log 2>&1 & ## parca-agent run in background ## Run this on a Server that you want to be inspected by Parca, the Data gets sent to the Remote Parca Control Server
+
+mail ## Use "help" for more info after command execution. Use "1" to see the first mail
+mcat --opts 'width=200px' image.jpg ## Limit the output size/width to 200 pixel
+
+OLLAMA_ORIGINS=\"chrome-extension://*\" ollama serve ## Ollama (CLI) - Start ollama server with chrome browsers access ## (e.g. for BrowserOS) See also: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama
+openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -salt -in {{filepath}} -out {{filepath}}.enc ## Encrypt File (AES-256) with OpenSSL
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -in {{filepath}}.enc -out {{filepath}} ## Decrypt File (AES-256) with OpenSSL
+openssl rand -hex 32 ## openssl - generate a JWT Secret
+
+pkill -f {{argument_1}} ## kill process by name
+popeye --context {{contextName}} --out html > report.html ## kubernetes - popeye - write html report of lint/scan
+popeye --context {{contextName}} ## kubernetes - popeye - lint/scan cluster for misconfigurations by specific context ## (you can list all contexts by: kubectl config get-contexts)
+popeye --out score --force-exit-zero -n {{nameOfCluster}} ## kubernetes - popeye - lint/scan cluster for misconfigurations and return score only
+printenv|sort ## Show current environment variables
+prowler aws --output-directory report --compliance iso27001_2013_aws --log-level ERROR ## Prowler - AWS ISO27k Compliance Scan/Report
+
+ps -ax -o pid,lstart,command | grep "STRING_DATETIME_OR_ELSE" ## Search for a string, datetime, etc. to find processes
+ps -fp $(pgrep -o {{argument_1}}) ## ps -fp - Search for a parent process only
+ps -p {{argument_1}} -o comm= ## ps -p - Find process by pid (show path/appname)
+ps -p \"$(fuser -c ~)\" ## sysops - ps -p show proc/app accessing a dir ## Show all processes/applications accessing  a directory or directory contents in OS X
+pssh -i -H {{host1}} -H {{host2}} df -h / ## ssh - pssh - \"df -h /\" (ssh command on multiple hosts) ## This command checks disk space usage in a human-readable format on specified remote hosts.
+
+rg -g '!{node_modules,.git,tests}/**' mySearchString
+rsync -avz --filter=':- .gitignore' {{sourcePath}} {{remoteServer}}:{{remotePath}} ## rsync from source to target (+ignore files from .gitignore)
+rustscan --top -a IP_ADDRESSES ## Scan the top 1000 ports of IP / CIDRs (similar to nmap)
+
+setenv ## Show all modified ZSH Shell Options
+
+s5cmd cp 's3://{{argument_1}}/*' s3://{{argument_2}}/ ## aws - S3 fast copy from one bucket to antoher bucket
+scutil --dns ## DNS - Show DNS config / used DNS Servers
+scutil --dns ## dns - show dns resolver config (scutil, macos only)
+source .env && curl -X GET http://localhost:3001/api/v1/workspaces -H \"Authorization: Bearer $ANYTHINGLLM_API_KEY\" -H \"Content-Type: application/json\" ## anythingllm - /api/v1/workspaces ## Dont forget to set your API key in your .env file
+ss -tuln | grep {{argument_1}} ## ss - check if port x is open (or use netstat)
+ssh -R 7070:localhost:7070 {{argument_1}} ## ssh tunnel remote:port  to localhost:port
+ssh-keygen -t rsa -b 4096 -C \"{{argument_1}}\" ## ssh-keygen - create new key
+ssh-keygen -t rsa -b 4096 -C \"{{argument_1}}\" ## sysops - ssh-keygen - create new key
+
+sudo ./parca-agent \   --node={{label_name}} \   --remote-store-address={{local_or_public_ip}} ## parca agent (binary) - stream monitoring data to another (remote) host with TLS/SSL
+sudo ./parca-agent \   --node={{label_name}} \   --remote-store-address={{local_or_public_ip}}:7070 \   --remote-store-insecure ## parca agent (binary) - stream monitoring data to another (remote) host
+sudo deluser --remove-home docker ## docker - Delete docker user
+sudo docker build --no-cache -f {{argument_1}} -t {{argument_2}} . ## Docker build from custom Docker File
+sudo docker compose down --volumes --remove-orphans ## docker compose down - remove all volumes and depenencies too
+sudo docker image prune --all --filter \"until={{argument_1}}\" ## docker image prune unused images older than x hours
+sudo docker images --format \"{{.Size}}\t{{.CreatedSince}}\t{{.Repository}}:{{.Tag}}\" | sort -rh -k1,1 ## docker images - show all big docker images sorted
+sudo iftop -t -s 30 ## network - Show top network connectivity for x seconds
+sudo nginx -t ## nginx - verify nginx configuration
+sudo nmap -Pn {{remoteserver}} ## network - nmap search if any open ports on remote
+sudo postqueue -p ## MacOS - List Messages in Mailqueue (postqueue)
+sudo postsuper -d ALL ## MacOS - Delete messages in Mailqueue
+sudo service nginx reload ## nginx - restart nginx service
+sudo shutdown +1 ## sysops - shutdown in 1 minute
+sudo tcpdump -i {{argument_1}} port 53 or port 853 or port 443 -n -c 20 ## tcpdump - check if DoT or DoH or plain/unencrypted DNS ## PREREQUISITES: Run `scutil --dns | grep -3 utun` if you don't know your wireguard interface INFO: Use `dig example.com` during the command execution
+
+sudo tcpdump -i eth0 -q -c 10000 ## network - tcpdump test network connectivity / package drops
+sudo tcpdump -n -i en0 port 443 and host {{argument_1}} ## network - tcpdump test connection ## tcpdump test network connection / package drop to a domain / remote server
+sudo useradd -m -s /bin/bash {{argument_1}} ## useradd - Create new user with home directory+shell ## Use -g flag if you want the user to add to a existing group, e.g.: -g somegroup
+sudo useradd -r -g docker -s /usr/sbin/nologin -d /nonexistent docker ## docker - BEST to CREATE DOCKER USER without Login ## => THIS MIGHT BE OBSOLETE, because the default already forces regular users to use \"sudo\" to run docker commands. Evaluate and test it before removing this command.
+sudo yum update -y sudo yum install -y docker sudo systemctl enable docker sudo service docker start # sudo usermod -a -G docker ec2-user sudo docker ps ## docker setup on AWS Amazon Linux 2023 ## https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-docker.html
+
+surreal sql --conn http://localhost:8000 --user root --pass root --ns mynamespace --db mydbname ## surrealdb - connect to db
+swaks --to {{recipient}} --from {{from}} -s {{mailserver}}:{{port}} -tlsc --auth-user {{from}} --auth-password ## sysops - Test SMTP Email Connection (testmail)
+systemctl list-units --type=service --all ## sysops - systemctl - list all services
+
+tail -100 ~/Library/Logs/Zed/Zed.log ## zed - show Zed.log entries
+tail -100 $HOME/Library/Logs/Zed/Zed.log ## zed - show latest .log messages
+tcpdump -ni lagg0.50 -c '200000' -U -w - '(not vlan)' ## network - tcpdump pfsense capture
+trivy fs --scanners vuln,misconfig,secret,license . ## trivy filesystem security scan in current directory
+
+w3m -dump -o accept_encoding='identity;q=0' "github.com" ## Search website without compression (workaround)
+w3m -dump "https://duckduckgo.com/?q=mySearchString" ## Duckduckgo Search using w3m tool 
+whence -v cmd_function_or_aliasname ## similar to "which" but more verbose
+wrk -t2 -c10 -d{{durationInSeconds}}s {{weburl}} ## network - Loadtest
+
+export TERM=xterm ## Fix terminal chars and similar if broken (can happen on remote sessions)
+zip -er {{archiveName}}.zip {{pathToDirectory}} ## zip with password

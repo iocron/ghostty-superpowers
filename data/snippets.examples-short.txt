@@ -1,0 +1,3 @@
+wrk -t2 -c10 -d{{durationInSeconds}}s {{weburl}} ## Name/Title ## Other optional Description Text..
+
+zip -er {{archiveName}}.zip {{pathToDirectory}} ## zip with password

@@ -1,0 +1,10 @@
+.DS_Store
+.env
+.snippets.txt
+.snippets.txt.backup
+.Thumbs
+cache/*
+node_modules
+plugins_external/*/
+snippets.txt
+!.gitkeep

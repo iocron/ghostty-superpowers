@@ -92,3 +92,7 @@ keybind = super+c=copy_to_clipboard
 # WORKAROUND/FIX - Shift+Enter/Return causing 2;13~ sequence characters (not always needed)
 # keybind = shift+enter=text:\n
 
+# Auto-install Ghostty's terminfo on remote hosts over SSH, so ncurses apps
+# like htop don't fail with "Error opening terminal: xterm-ghostty".
+shell-integration-features = ssh-terminfo
+

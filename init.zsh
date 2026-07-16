@@ -75,6 +75,11 @@ if [[ $- == *i* && "$TERM_PROGRAM" == "ghostty" ]]; then
     # (make Ghostty UI even better)
     source "$GHOSTTY_SUPERPOWERS/plugins/ui.zsh"
 
+    # GPOWERS - LIGHT SHELL OVER SSH
+    # (gssh: ship zsh-autosuggestions + syntax-highlighting to remote hosts on
+    #  connect, without installing anything into their config)
+    source "$GHOSTTY_SUPERPOWERS/plugins/remote-ssh.zsh"
+
   else
     echo "[WARNING] zsh not found. Please install zsh shell to use ghostty-superpowers. You can also install all dependencies for ghostty-superpowers by running install.sh"
   fi

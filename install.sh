@@ -191,10 +191,45 @@ install_zsh_plugins_external() {
   fi
 }
 
+# ble.sh: vendored so `gssh` can ship autosuggestions + highlighting to remote
+# bash hosts. Pinned stable release; optional (gssh falls back to a plain login).
+readonly BLESH_VERSION="v0.3.4"
+readonly BLESH_TARBALL="ble-0.3.4.tar.xz"
+
+install_blesh_external() {
+  local dest="$GHOSTTY_SUPERPOWERS/plugins_external/blesh"
+  local marker="$dest/.gsp-version"
+  local url="https://github.com/akinomyoga/ble.sh/releases/download/${BLESH_VERSION}/${BLESH_TARBALL}"
+
+  # Already at the pinned version? skip.
+  if [[ -f "$dest/ble.sh" && "$(cat "$marker" 2>/dev/null)" == "$BLESH_VERSION" ]]; then
+    [[ -n "$DEBUG" ]] && echo "[SKIP] ble.sh $BLESH_VERSION already vendored"
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "[WARN] curl not found; skipping ble.sh (gssh bash remotes fall back to plain ssh)"
+    return 0
+  fi
+
+  echo "[INFO] Fetching ble.sh $BLESH_VERSION (for gssh bash remotes)..."
+  # Extract in place (tar overwrites) — no rm on the vendored dir, only on mktemp.
+  local tmp; tmp="$(mktemp -d)"
+  if curl -fsSL -o "$tmp/$BLESH_TARBALL" "$url" \
+     && mkdir -p "$dest" \
+     && tar xJf "$tmp/$BLESH_TARBALL" -C "$dest" --strip-components=1; then
+    printf '%s' "$BLESH_VERSION" > "$marker"
+  else
+    echo "[WARN] Could not fetch/extract ble.sh; gssh bash remotes fall back to plain ssh"
+  fi
+  rm -rf "$tmp"   # $tmp came from `mktemp -d` — safe by construction
+}
+
 install_base() {
   install_ghostty
   install_zsh
   install_zsh_plugins_external
+  install_blesh_external
   install_ghostty_superpowers_zsh
   install_ghostty_superpowers_env
 

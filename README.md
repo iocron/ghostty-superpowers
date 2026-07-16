@@ -32,6 +32,7 @@ Enjoy your new Ghostty Experience :)
 - AI-Powered LLM Completion (type `#` followed by text and press Tab or Enter)
 - Directory Jump with numeric shortcuts (`0`-`9`) to hop between your most-used directories (type `0` to show the ranked list)
 - Quick browser websearch (e.g. `s <query>`)
+- `gssh` - take your autosuggestions + syntax highlighting to remote hosts over SSH, without installing anything on them
 - Zsh with a built-in framework (prompt, completion, keybindings, git prompt)
 - Other helper aliases and functions can be listed with `alias` / `functions`
 
@@ -54,6 +55,19 @@ To use a different model, pull it and set `GHOSTTY_SUPERPOWERS_OLLAMA_MODEL` in 
 Then, in a new pane or session, use it two ways - press Tab or Enter after typing:
 - **Generate** a command: start the line with `#` and describe what you want, e.g. `# list files by size`.
 - **Modify** a command: write the command, then `#` and an instruction, e.g. `echo 123 # change the string to hello world` → `echo "hello world"`.
+
+## How to use gssh (Superpowers on Remote Hosts)
+
+`gssh user@host` connects like `ssh` but brings autosuggestions + syntax
+highlighting along, **without installing anything into the remote's config**. It
+ships a small bundle on connect (zsh remotes get the zsh plugins, bash ≥ 4 get
+[`ble.sh`](https://github.com/akinomyoga/ble.sh), others fall back to a plain
+login) and never touches the host's rc files or history.
+
+Options (in `~/.ghostty-superpowers/.env` or your zsh profile):
+- `GSP_SSH_EPHEMERAL=1` — no residue; else the bundle is cached under
+  `~/.cache/gsp-lite` (remove it with `rm -rf ~/.cache/gsp-lite`).
+- `GSP_SSH_WRAP=1` — also enhance the plain `ssh` command, not just `gssh`.
 
 ## Preview of some Features
 

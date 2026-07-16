@@ -62,4 +62,14 @@ zstyle '*' single-ignored show
 # Match completion colours to $LS_COLORS
 [[ -z "$LS_COLORS" ]] || zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 
+# Add ~/.ssh/config Host aliases (+ known_hosts) to host completion, so `ssh <TAB>` lists them.
+zstyle -e ':completion:*:*:*:hosts' hosts '
+  reply=(
+    ${(f)"$(awk '\''tolower($1)=="host"{for (i=2;i<=NF;i++) if ($i !~ /[*?]/) print $i}'\'' ~/.ssh/config 2>/dev/null)"}
+    ${${${(f)"$(cat ~/.ssh/known_hosts /etc/ssh/ssh_known_hosts 2>/dev/null)"}:#[|]*}%%[ ,]*}
+  )'
+
+# Hide macOS/system service accounts ('_'-prefixed) from user completion, so `ssh <TAB>` isn't flooded.
+zstyle ':completion:*:*:*:users' ignored-patterns '_*'
+
 unset GTTY_CACHE_DIR

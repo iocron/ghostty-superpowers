@@ -56,6 +56,7 @@ curl -s https://ollama.com/library | pup '#repo ul li h2 json{}' | jq -r '.[].te
 curl -w 'Time to Connect: %{time_connect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n' -o /dev/null -s {{url}} ## curl page performance
 curl ifconfig.me ## sysops - Show my public IP ## Use \"curl -4 ifconfig.me\" to enforce IPv4 Check or \"curl -6 ifconfig.me\" to enforce IPv6 Check
 
+dscl . list /Users ## List all macos service accounts
 dig {{argument_1}} +noall +answer | awk '{print $1, $5}' | grep -vE '^;' ## dig domain dns (short)
 dig {{argument_1}} +short | head -1 ## dig domain dns (short, 1 result)
 dig +short TXT {{domainName}} ## dig short TXT domain

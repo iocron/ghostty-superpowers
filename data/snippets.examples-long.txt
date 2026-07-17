@@ -50,7 +50,8 @@ certigo connect {{argument_1}} ## certificates - check if a domain cert is valid
 cloc --vcs git . ## Count Lines of Code in current folder (ignore git files)
 colima template ## Edit colima vm template (cpu, disk, nw, ..) ## Lets you edit the default settings (e.g. cpu, disk, network, ..)  when starting a new VM with colima/containerd.
 curl -L --resolve {{argument_1}}:{{argument_2}}:{{argument_3}} {{argument_1}} ## curl - RESOLVE/TUNNEL through another HOST
-curl -Lo {{argument_1}} {{argument_2}} ## curl - Download file
+curl -Lo {{filename}} {{url}} ## Download file (follows redirects + saves as specified filename)
+curl -LI {{url}} ## Follow redirects and display response headers
 curl -o parca-agent -sL \"https://github.com/parca-dev/parca-agent/releases/download/v0.40.2/parca-agent_0.40.2_$(uname -s)_$(uname -m)\" && chmod u+x ./parca-agent ## parca agent - installer (one-liner)
 curl -s https://ollama.com/library | pup '#repo ul li h2 json{}' | jq -r '.[].text' ## curl+pup+jq (with css selector filter)
 curl -w 'Time to Connect: %{time_connect}s\nTime to First Byte: %{time_starttransfer}s\nTotal Time: %{time_total}s\n' -o /dev/null -s {{url}} ## curl page performance
@@ -83,6 +84,7 @@ du -csh . ## sysops - Show size of current folder
 echo -e \"Text with Ansi Escape Codes / Color Codes: \033[33m39.47\033[39m\" | sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' ## echo sed - Remove ANSI Escape / Color codes from Text
 echo \"Test email body\" | mail -s \"Test email\" {{argument_1}} ## Mail - Send a Testmail
 ethtool -S eth0 ## network - query or control network driver and hardware settings 
+export TERM=xterm ## Fix terminal display/chars/cursor if broken (can happen on remote sessions)
 eza -lTL 2 ## sysops - eza ls -lah like and 2-level deep
 
 fd -HI \"{{argument_1}}\" ## fd - find a file (ignores .gitignore, search hidden files too)
@@ -244,5 +246,4 @@ w3m -dump "https://duckduckgo.com/?q=mySearchString" ## Duckduckgo Search using 
 whence -v cmd_function_or_aliasname ## similar to "which" but more verbose
 wrk -t2 -c10 -d{{durationInSeconds}}s {{weburl}} ## network - Loadtest
 
-export TERM=xterm ## Fix terminal chars and similar if broken (can happen on remote sessions)
 zip -er {{archiveName}}.zip {{pathToDirectory}} ## zip with password

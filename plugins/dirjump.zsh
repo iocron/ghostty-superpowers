@@ -134,35 +134,39 @@ _gtty_dirjump_path() {
   _gtty_dirjump_rank | awk -F '\t' -v n="$1" 'NR == n { print $3; exit }'
 }
 
-# Render the 0 list: static `-` (cd -) row, then last-visit time + EMA freq bar.
+# Render the 0 list: ranked dirs (last-visit time + EMA freq bar)
 _gtty_dirjump_list() {
   print -P "%F{244} cmd    last   freq  directory%f"
-  printf '%s%3s  %6s  %s  %s\n' ' ' '-' '-' '     ' "${${OLDPWD:-none}/#$HOME/~}"
   local ranked; ranked="$(_gtty_dirjump_rank)"
-  [[ -n "$ranked" ]] || { print -P "%F{244}   (no directories tracked yet)%f"; return; }
-  # Digits 1-9 map to ranked dirs 1-9, so list at most 9 rows.
   local now=${EPOCHSECONDS:-$(date +%s)}
-  awk -F '\t' -v now="$now" -v pwd="$PWD" -v home="$HOME" '
-    { n++; sc[n] = $1; lt[n] = $2; pa[n] = $3; if ($1 + 0 > mx) mx = $1 + 0 }
-    END {
-      for (i = 1; i <= n && i <= 9; i++) {
-        ago = now - lt[i]
-        if      (ago < 60)    agostr = ago "s"
-        else if (ago < 3600)  agostr = int(ago / 60) "m"
-        else if (ago < 86400) agostr = sprintf("%.1fh", ago / 3600)
-        else                  agostr = sprintf("%.1fd", ago / 86400)
-        cells = (mx > 0) ? int(sc[i] / mx * 5 + 0.999) : 0
-        if (cells > 5) cells = 5
-        if (cells < 1 && sc[i] + 0 > 0) cells = 1
-        bar = ""
-        for (k = 1; k <= 5; k++) bar = bar (k <= cells ? "\342\226\210" : "\342\226\221")
-        marker = (pa[i] == pwd) ? "*" : " "
-        path = pa[i]
-        if (substr(path, 1, length(home)) == home) path = "~" substr(path, length(home) + 1)
-        printf "%s%3d  %6s  %s  %s\n", marker, i, agostr, bar, path
+  # Digits 1-9 map to ranked dirs 1-9, so list at most 9 rows.
+  if [[ -n "$ranked" ]]; then
+    awk -F '\t' -v now="$now" -v pwd="$PWD" -v home="$HOME" '
+      { n++; sc[n] = $1; lt[n] = $2; pa[n] = $3; if ($1 + 0 > mx) mx = $1 + 0 }
+      END {
+        for (i = 1; i <= n && i <= 9; i++) {
+          ago = now - lt[i]
+          if      (ago < 60)    agostr = ago "s"
+          else if (ago < 3600)  agostr = int(ago / 60) "m"
+          else if (ago < 86400) agostr = sprintf("%.1fh", ago / 3600)
+          else                  agostr = sprintf("%.1fd", ago / 86400)
+          cells = (mx > 0) ? int(sc[i] / mx * 5 + 0.999) : 0
+          if (cells > 5) cells = 5
+          if (cells < 1 && sc[i] + 0 > 0) cells = 1
+          bar = ""
+          for (k = 1; k <= 5; k++) bar = bar (k <= cells ? "\342\226\210" : "\342\226\221")
+          marker = (pa[i] == pwd) ? "*" : " "
+          path = pa[i]
+          if (substr(path, 1, length(home)) == home) path = "~" substr(path, length(home) + 1)
+          printf "%s%3d  %6s  %s  %s\n", marker, i, agostr, bar, path
+        }
       }
-    }
-  ' <<< "$ranked"
+    ' <<< "$ranked"
+  else
+    print -P "%F{244}   (no directories tracked yet)%f"
+  fi
+  echo
+  printf '%s%3s  %6s  %s  %s\n' ' ' '-' '-' '     ' "${${OLDPWD:-none}/#$HOME/~}"
 }
 
 # Dispatch a digit: 1-9 jump to ranked dirs 1-9 (cd - is the separate `-` alias).

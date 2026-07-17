@@ -3,21 +3,25 @@
 # Frecency-style numeric shortcuts for hopping between your busiest dirs.
 #
 #   0   → show the ranked list of tracked directories
-#   1   → cd -            (toggle to the previous directory)
-#   2   → most-used directory
-#   3   → 2nd most-used directory
-#   4   → 3rd most-used directory
+#   1   → top-ranked dir  (busiest by recency-weighted score; the slot is sticky)
+#   2   → 2nd-ranked dir
+#   3   → 3rd-ranked dir
 #   ... → up to 9
+#   -   → cd -            (toggle to the previous directory; see lib/directories.zsh)
 #
-# Every real directory change is logged (one "epoch <TAB> path" line per visit)
-# and ranking counts how often each dir appears within the most recent window of
-# visits -- so a place you hammered long ago fades once it scrolls out of the
-# window, while recently-busy dirs rise. Tweak behaviour via:
-#   GTTY_DIRJUMP_DB    path to the visit log
-#   GTTY_DIRJUMP_MAX   size of the recent-visit window used for ranking
+# Each dir change is logged (epoch <TAB> path). Score = EMA of visits.
+# Slot numbers are sticky: only a clearly-busier dir steals a slot. Tune via:
+#   GTTY_DIRJUMP_DB        path to the visit log
+#   GTTY_DIRJUMP_MAX       size of the recent-visit window kept in the log
+#   GTTY_DIRJUMP_HALFLIFE  EMA half-life in seconds (default 21600 = 6h)
+#   GTTY_DIRJUMP_MARGIN    how much busier a dir must be to steal a slot (default 1.5x)
+#   GTTY_DIRJUMP_ORDER     path to the persisted sticky-order sidecar file
 
 : "${GTTY_DIRJUMP_DB:=${GHOSTTY_SUPERPOWERS:-$HOME/.ghostty-superpowers}/cache/.dir_frecency}"
-: "${GTTY_DIRJUMP_MAX:=100}"
+: "${GTTY_DIRJUMP_MAX:=200}"
+: "${GTTY_DIRJUMP_HALFLIFE:=21600}"
+: "${GTTY_DIRJUMP_MARGIN:=1.5}"
+: "${GTTY_DIRJUMP_ORDER:=${GTTY_DIRJUMP_DB}.order}"
 
 autoload -Uz add-zsh-hook
 zmodload -F zsh/datetime +EPOCHSECONDS 2>/dev/null
@@ -29,8 +33,60 @@ else
   [[ -f "$GTTY_DIRJUMP_DB" ]] || : >> "$GTTY_DIRJUMP_DB" 2>/dev/null
 fi
 
-# Record a visit to $PWD; runs on every directory change. Appends the visit and
-# trims to the most recent GTTY_DIRJUMP_MAX lines (the ranking window).
+# Recompute + persist the sticky order; overtake needs MARGIN x the score above.
+_gtty_dirjump_reorder() {
+  local db="$GTTY_DIRJUMP_DB" order="$GTTY_DIRJUMP_ORDER"
+  local now=${EPOCHSECONDS:-$(date +%s)}
+  [[ -d "${order:h}" && -s "$db" ]] || return
+  local prev="$order"; [[ -s "$prev" ]] || prev=/dev/null
+  local tmp
+  tmp="$(mktemp "${order}.XXXXXX")" || return
+  awk -F '\t' -v now="$now" -v hl="$GTTY_DIRJUMP_HALFLIFE" \
+      -v margin="$GTTY_DIRJUMP_MARGIN" -v dbfile="$db" '
+    # The visit log -- accumulate each dir'"'"'s EMA score and last-seen epoch.
+    FILENAME == dbfile {
+      if (NF >= 2) { p = $2; score[p] += exp(-0.6931472 * (now - $1) / hl)
+                     if ($1 + 0 > last[p]) last[p] = $1 }
+      next
+    }
+    # Previous order (one path/line); match by FILENAME, not NR==FNR (empty-safe).
+    length($0) { prev[++np] = $0 }
+    END {
+      no = 0
+      # Keep prior order for dirs still inside the window (score > 0).
+      for (i = 1; i <= np; i++) {
+        p = prev[i]
+        if ((p in score) && !(p in seen)) { ord[++no] = p; seen[p] = 1 }
+      }
+      # Append dirs not seen before, busiest-first.
+      nn = 0
+      for (p in score) if (!(p in seen)) newp[++nn] = p
+      for (i = 2; i <= nn; i++) {
+        x = newp[i]; j = i - 1
+        while (j >= 1 && busier(x, newp[j])) { newp[j + 1] = newp[j]; j-- }
+        newp[j + 1] = x
+      }
+      for (i = 1; i <= nn; i++) ord[++no] = newp[i]
+      # Hysteresis: bubble a dir up only when its score >= margin x the one above.
+      swapped = 1
+      while (swapped) {
+        swapped = 0
+        for (i = 1; i < no; i++) {
+          a = ord[i]; b = ord[i + 1]
+          if (score[b] >= score[a] * margin) { ord[i] = b; ord[i + 1] = a; swapped = 1 }
+        }
+      }
+      for (i = 1; i <= no; i++) print ord[i]
+    }
+    # True when x is busier than y (higher score, ties broken by recency).
+    function busier(x, y) {
+      return (score[x] > score[y]) || (score[x] == score[y] && last[x] > last[y])
+    }
+  ' "$db" "$prev" > "$tmp" 2>/dev/null \
+    && mv -f "$tmp" "$order" 2>/dev/null || rm -f "$tmp" 2>/dev/null
+}
+
+# Record a $PWD visit (chpwd): append, trim to last MAX lines, refresh order.
 _gtty_dirjump_record() {
   local db="$GTTY_DIRJUMP_DB" dir="$PWD" now=${EPOCHSECONDS:-$(date +%s)}
   [[ -d "${db:h}" ]] || return
@@ -38,16 +94,37 @@ _gtty_dirjump_record() {
   tmp="$(mktemp "${db}.XXXXXX")" || return
   { [[ -f "$db" ]] && cat -- "$db"; printf '%s\t%s\n' "$now" "$dir"; } \
     | tail -n "$GTTY_DIRJUMP_MAX" > "$tmp" 2>/dev/null
-  mv -f "$tmp" "$db" 2>/dev/null || rm -f "$tmp" 2>/dev/null
+  mv -f "$tmp" "$db" 2>/dev/null || { rm -f "$tmp" 2>/dev/null; return; }
+  _gtty_dirjump_reorder
 }
 
-# Emit unique dirs ranked by visit frequency within the window (most-used first).
-# Output: count <TAB> last_epoch <TAB> path
+# Emit dirs in sticky-slot order. Output: score <TAB> last_epoch <TAB> path
 _gtty_dirjump_rank() {
   [[ -s "$GTTY_DIRJUMP_DB" ]] || return
-  awk -F '\t' '
-    NF >= 2 { p = $2; cnt[p]++; if ($1 + 0 > last[p]) last[p] = $1 }
-    END     { for (p in cnt) printf "%d\t%d\t%s\n", cnt[p], last[p], p }
+  local now=${EPOCHSECONDS:-$(date +%s)}
+  # Preferred path: emit in the persisted sticky order so numbers stay memorable.
+  if [[ -s "$GTTY_DIRJUMP_ORDER" ]]; then
+    awk -F '\t' -v now="$now" -v hl="$GTTY_DIRJUMP_HALFLIFE" -v dbfile="$GTTY_DIRJUMP_DB" '
+      FILENAME == dbfile {
+        if (NF >= 2) { p = $2; score[p] += exp(-0.6931472 * (now - $1) / hl)
+                       if ($1 + 0 > last[p]) last[p] = $1 }
+        next
+      }
+      length($0) { ord[++no] = $0 }
+      END {
+        for (i = 1; i <= no; i++) {
+          p = ord[i]
+          if (p in score) printf "%.6f\t%d\t%s\n", score[p], last[p], p
+        }
+      }
+    ' "$GTTY_DIRJUMP_DB" "$GTTY_DIRJUMP_ORDER" 2>/dev/null
+    return
+  fi
+  # Cold-cache fallback (no order file yet): rank by EMA score, ties by recency.
+  awk -F '\t' -v now="$now" -v hl="$GTTY_DIRJUMP_HALFLIFE" '
+    NF >= 2 { p = $2; score[p] += exp(-0.6931472 * (now - $1) / hl)
+              if ($1 + 0 > last[p]) last[p] = $1 }
+    END     { for (p in score) printf "%.6f\t%d\t%s\n", score[p], last[p], p }
   ' "$GTTY_DIRJUMP_DB" 2>/dev/null \
     | sort -t $'\t' -k1,1nr -k2,2nr
 }
@@ -57,38 +134,50 @@ _gtty_dirjump_path() {
   _gtty_dirjump_rank | awk -F '\t' -v n="$1" 'NR == n { print $3; exit }'
 }
 
-# Show the ranked list with the command number to type for each entry.
+# Render the 0 list: static `-` (cd -) row, then last-visit time + EMA freq bar.
 _gtty_dirjump_list() {
-  print -P "%F{244} cmd  recent  directory%f"
-  print -P "%F{244}   1       -  cd - -> ${${OLDPWD:-none}/#$HOME/~}%f"
+  print -P "%F{244} cmd    last   freq  directory%f"
+  printf '%s%3s  %6s  %s  %s\n' ' ' '-' '-' '     ' "${${OLDPWD:-none}/#$HOME/~}"
   local ranked; ranked="$(_gtty_dirjump_rank)"
   [[ -n "$ranked" ]] || { print -P "%F{244}   (no directories tracked yet)%f"; return; }
-  # Only list dirs that have a working jump command. Digits run 1-9 and cmd 1 is
-  # `cd -`, so the ranked list can fill commands 2-9 (8 dirs) at most; stop there
-  # rather than printing rows whose cmd number (10, 11, ...) can never be typed.
-  local i=1 count ts path marker
-  while IFS=$'\t' read -r count ts path; do
-    (( i + 1 > 9 )) && break
-    marker=' '; [[ "$path" == "$PWD" ]] && marker='*'
-    printf '%s%3d  %6d  %s\n' "$marker" $(( i + 1 )) "$count" "${path/#$HOME/~}"
-    (( i++ ))
-  done <<< "$ranked"
+  # Digits 1-9 map to ranked dirs 1-9, so list at most 9 rows.
+  local now=${EPOCHSECONDS:-$(date +%s)}
+  awk -F '\t' -v now="$now" -v pwd="$PWD" -v home="$HOME" '
+    { n++; sc[n] = $1; lt[n] = $2; pa[n] = $3; if ($1 + 0 > mx) mx = $1 + 0 }
+    END {
+      for (i = 1; i <= n && i <= 9; i++) {
+        ago = now - lt[i]
+        if      (ago < 60)    agostr = ago "s"
+        else if (ago < 3600)  agostr = int(ago / 60) "m"
+        else if (ago < 86400) agostr = sprintf("%.1fh", ago / 3600)
+        else                  agostr = sprintf("%.1fd", ago / 86400)
+        cells = (mx > 0) ? int(sc[i] / mx * 5 + 0.999) : 0
+        if (cells > 5) cells = 5
+        if (cells < 1 && sc[i] + 0 > 0) cells = 1
+        bar = ""
+        for (k = 1; k <= 5; k++) bar = bar (k <= cells ? "\342\226\210" : "\342\226\221")
+        marker = (pa[i] == pwd) ? "*" : " "
+        path = pa[i]
+        if (substr(path, 1, length(home)) == home) path = "~" substr(path, length(home) + 1)
+        printf "%s%3d  %6s  %s  %s\n", marker, i, agostr, bar, path
+      }
+    }
+  ' <<< "$ranked"
 }
 
-# Dispatch a numeric command to the right action.
+# Dispatch a digit: 1-9 jump to ranked dirs 1-9 (cd - is the separate `-` alias).
 _gtty_dirjump_go() {
   local n="$1" dir
   case "$n" in
     0) _gtty_dirjump_list ;;
-    1) cd - ;;
-    *) dir="$(_gtty_dirjump_path $(( n - 1 )))"
+    *) dir="$(_gtty_dirjump_path "$n")"
        if [[ -n "$dir" && -d "$dir" ]]; then
          cd -- "$dir"
        elif [[ -n "$dir" ]]; then
-         print -u2 "dirjump: rank $(( n - 1 )) directory no longer exists: $dir"
+         print -u2 "dirjump: rank $n directory no longer exists: $dir"
          return 1
        else
-         print -u2 "dirjump: nothing ranked at position $(( n - 1 )) yet (try 0)"
+         print -u2 "dirjump: nothing ranked at position $n yet (try 0)"
          return 1
        fi ;;
   esac

@@ -30,7 +30,7 @@ Enjoy your new Ghostty Experience :)
 - Ghostty Terminal with Blockview Gadgets
 - Advanced Snippet-/Historysearch and Autocomplete
 - AI-Powered LLM Completion (type `#` followed by text and press Tab or Enter)
-- Directory Jump with numeric shortcuts (`0`-`9`) to hop between your most-used directories (type `0` to show the ranked list)
+- Intelligent directory jump with numeric shortcuts (`1–9`) to most-used dirs (type `0` + Enter for an overview)
 - Quick browser websearch (e.g. `s <query>`)
 - Lightweight `gssh` command (take your autosuggestions + syntax highlighting to remote hosts over SSH)
 - Zsh with a built-in framework (prompt, completion, keybindings, git prompt)

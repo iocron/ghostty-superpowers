@@ -53,9 +53,12 @@ zstyle ':completion:*:*:*:*:processes' command "ps -u $USERNAME -o pid,user,comm
 # Don't offer directory-stack / named-dir entries for `cd`
 zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
 
-# Cache slow completions (apt, dpkg, ...)
+# Cache slow completions (apt, dpkg, brew formulae/casks, ...)
 zstyle ':completion:*' use-cache yes
 zstyle ':completion:*' cache-path "$GTTY_CACHE_DIR"
+# Rebuild a cache file older than a week so new packages still tab-complete.
+_gtty_cache_policy() { local -a old; old=( "$1"(Nmw+1) ); (( $#old )); }
+zstyle ':completion:*' cache-policy _gtty_cache_policy
 
 zstyle '*' single-ignored show
 

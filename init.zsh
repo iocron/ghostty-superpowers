@@ -55,6 +55,10 @@ if [[ $- == *i* && "$TERM_PROGRAM" == "ghostty" ]]; then
     source "$GHOSTTY_SUPERPOWERS/lib/functions.zsh"
     source "$GHOSTTY_SUPERPOWERS/lib/keybindings.zsh"
 
+    # GPOWERS - SHIFT-SELECT
+    # (select command-line text with Shift+arrows, like a GUI editor)
+    source "$GHOSTTY_SUPERPOWERS/plugins/shift-select.zsh"
+
     # GPOWERS - FZF
     # (Fuzzy Finder / Reverse-Search / ..)
     source "$GHOSTTY_SUPERPOWERS/plugins/fzf.zsh"

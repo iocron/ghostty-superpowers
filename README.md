@@ -45,7 +45,7 @@ COMMAND ## NAME/TITLE ## DESCRIPTION..
 For example: `echo "123" ## Echo example ## Outputs text`\
 (or use one of the example files data/snippets.examples-long.txt)
 
-When you restart Ghostty, you should see your new commands in the history/reverse search and while typing (due to autocomplete). If this still doesn't work, delete the file /tmp/.ghostty_snippets_lastrun and restart Ghostty again.
+When you restart Ghostty (or reload ghostty config), you should see your new commands in the history/reverse search and while typing (due to autocomplete). If this still doesn't work, delete the file /tmp/.ghostty_snippets_lastrun and restart Ghostty again.
 
 ## How to use the AI Auto-Completion Feature
 The **Full** installation sets up ollama and the default model out of the box. With a **Minimal** install, install ollama yourself (https://ollama.com/) and pull a model: `ollama pull gemma4:e2b` (or `gemma4:e2b-mlx` on macOS).

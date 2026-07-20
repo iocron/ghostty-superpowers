@@ -123,6 +123,8 @@ go test -v ./... -run {{TestFunctionName}} ## misc - go test specific function/t
 go vet ./... ## go - check if any golang errors exist
 govulncheck ./... ## golang - check all dependencies for vulnerabilities ## (see https://github.com/golang/vuln)  How to install: 1. If you need to install:      go install golang.org/x/vuln/cmd/govulncheck@latest 2. Then add to your /.zshrc this:     export PATH=$(go env GOPATH)/bin:$PATH
 
+gssh user@host ## Same as connecting with `ssh` but with autosuggestions and syntax highlighting
+
 printf "## Add this to your ~/.ssh/config:\nHost *\n  PubkeyAuthentication yes\n  PubkeyAcceptedKeyTypes ssh-rsa\n  IdentitiesOnly yes\n  AddKeysToAgent yes\n  UseKeychain yes\n"
 
 ifconfig | grep 'inet ' | grep -v '127.0.0.1' ## network - show local ip address
@@ -195,7 +197,7 @@ ps -p {{argument_1}} -o comm= ## ps -p - Find process by pid (show path/appname)
 ps -p \"$(fuser -c ~)\" ## sysops - ps -p show proc/app accessing a dir ## Show all processes/applications accessing  a directory or directory contents in OS X
 pssh -i -H {{host1}} -H {{host2}} df -h / ## ssh - pssh - \"df -h /\" (ssh command on multiple hosts) ## This command checks disk space usage in a human-readable format on specified remote hosts.
 
-rg -g '!{node_modules,.git,tests}/**' mySearchString
+rg -g '!{node_modules,.git,tests}/**' mySearchString ## exclude specific files/folder from search)
 rsync -avz --filter=':- .gitignore' {{sourcePath}} {{remoteServer}}:{{remotePath}} ## rsync from source to target (+ignore files from .gitignore)
 rustscan --top -a IP_ADDRESSES ## Scan the top 1000 ports of IP / CIDRs (similar to nmap)
 

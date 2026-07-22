@@ -13,14 +13,14 @@
 # Slot numbers are sticky: only a clearly-busier dir steals a slot. Tune via:
 #   GTTY_DIRJUMP_DB        path to the visit log
 #   GTTY_DIRJUMP_MAX       size of the recent-visit window kept in the log
-#   GTTY_DIRJUMP_HALFLIFE  EMA half-life in seconds (default 21600 = 6h)
-#   GTTY_DIRJUMP_MARGIN    how much busier a dir must be to steal a slot (default 1.5x)
+#   GTTY_DIRJUMP_HALFLIFE  EMA half-life in seconds (default 86400 = 24h)
+#   GTTY_DIRJUMP_MARGIN    how much busier a dir must be to steal a slot (default 2.0x)
 #   GTTY_DIRJUMP_ORDER     path to the persisted sticky-order sidecar file
 
 : "${GTTY_DIRJUMP_DB:=${GHOSTTY_SUPERPOWERS:-$HOME/.ghostty-superpowers}/cache/.dir_frecency}"
 : "${GTTY_DIRJUMP_MAX:=200}"
-: "${GTTY_DIRJUMP_HALFLIFE:=21600}"
-: "${GTTY_DIRJUMP_MARGIN:=1.5}"
+: "${GTTY_DIRJUMP_HALFLIFE:=86400}"
+: "${GTTY_DIRJUMP_MARGIN:=2.0}"
 : "${GTTY_DIRJUMP_ORDER:=${GTTY_DIRJUMP_DB}.order}"
 
 autoload -Uz add-zsh-hook
@@ -136,7 +136,7 @@ _gtty_dirjump_path() {
 
 # Render the 0 list: ranked dirs (last-visit time + EMA freq bar)
 _gtty_dirjump_list() {
-  print -P "%F{244} cmd    last   freq  directory%f"
+  print -P "%F{244}   last   freq  cmd  directory%f"
   local ranked; ranked="$(_gtty_dirjump_rank)"
   local now=${EPOCHSECONDS:-$(date +%s)}
   # Digits 1-9 map to ranked dirs 1-9, so list at most 9 rows.
@@ -158,15 +158,15 @@ _gtty_dirjump_list() {
           marker = (pa[i] == pwd) ? "*" : " "
           path = pa[i]
           if (substr(path, 1, length(home)) == home) path = "~" substr(path, length(home) + 1)
-          printf "%s%3d  %6s  %s  %s\n", marker, i, agostr, bar, path
+          printf "%s%6s  %s  %3d  %s\n", marker, agostr, bar, i, path
         }
       }
     ' <<< "$ranked"
   else
     print -P "%F{244}   (no directories tracked yet)%f"
   fi
-  echo
-  printf '%s%3s  %6s  %s  %s\n' ' ' '-' '-' '     ' "${${OLDPWD:-none}/#$HOME/~}"
+  # echo
+  printf '%s%6s  %s  %3s  %s\n' ' ' '-' '     ' '-' "${${OLDPWD:-none}/#$HOME/~}"
 }
 
 # Dispatch a digit: 1-9 jump to ranked dirs 1-9 (cd - is the separate `-` alias).

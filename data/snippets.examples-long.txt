@@ -178,6 +178,7 @@ nohup sudo ./parca-agent --node={{argument_1}} --remote-store-address={{argument
 
 mail ## Use "help" for more info after command execution. Use "1" to see the first mail
 mcat --opts 'width=200px' image.jpg ## Limit the output size/width to 200 pixel
+mcat -P ## mcat without Pager View
 
 OLLAMA_ORIGINS=\"chrome-extension://*\" ollama serve ## Ollama (CLI) - Start ollama server with chrome browsers access ## (e.g. for BrowserOS) See also: https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-allow-additional-web-origins-to-access-ollama
 openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -salt -in {{filepath}} -out {{filepath}}.enc ## Encrypt File (AES-256) with OpenSSL

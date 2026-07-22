@@ -32,7 +32,7 @@ Enjoy your new Ghostty Experience :)
 - AI-Powered LLM Completion (type `#` followed by text and press Tab or Enter)
 - Intelligent directory jump with numeric shortcuts (`1–9`) to most-used dirs (type `0` + Enter for an overview)
 - Quick browser websearch (e.g. `s <query>`)
-- Lightweight `gssh` command (take your autosuggestions + syntax highlighting to remote hosts over SSH)
+- Lightweight command gssh (or aliases ssg / sshg) for autosuggestions + syntax highlighting on remote hosts over SSH
 - Zsh with a built-in framework (prompt, completion, keybindings, git prompt)
 - Other helper aliases and functions can be listed with `alias` / `functions`
 

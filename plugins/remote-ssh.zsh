@@ -237,6 +237,8 @@ _gsp_ssh() {
 }
 
 gssh() { _gsp_ssh "$@"; }
+alias sshg=gssh # convenience alias (mirrors the ssh-first muscle memory)
+alias ssg=gssh
 
 # Complete hosts (from ~/.ssh/config, known_hosts, ...) for `gssh` just like ssh.
 (( $+functions[compdef] )) && compdef gssh=ssh

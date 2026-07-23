@@ -15,12 +15,14 @@
 #   GTTY_DIRJUMP_MAX       size of the recent-visit window kept in the log
 #   GTTY_DIRJUMP_HALFLIFE  EMA half-life in seconds (default 86400 = 24h)
 #   GTTY_DIRJUMP_MARGIN    how much busier a dir must be to steal a slot (default 2.0x)
+#   GTTY_DIRJUMP_STICKY    top slots pinned to sticky order; the rest (up to 9) show most-recent (default 5)
 #   GTTY_DIRJUMP_ORDER     path to the persisted sticky-order sidecar file
 
 : "${GTTY_DIRJUMP_DB:=${GHOSTTY_SUPERPOWERS:-$HOME/.ghostty-superpowers}/cache/.dir_frecency}"
 : "${GTTY_DIRJUMP_MAX:=200}"
 : "${GTTY_DIRJUMP_HALFLIFE:=86400}"
 : "${GTTY_DIRJUMP_MARGIN:=2.0}"
+: "${GTTY_DIRJUMP_STICKY:=5}"
 : "${GTTY_DIRJUMP_ORDER:=${GTTY_DIRJUMP_DB}.order}"
 
 autoload -Uz add-zsh-hook
@@ -117,7 +119,7 @@ _gtty_dirjump_rank() {
           if (p in score) printf "%.6f\t%d\t%s\n", score[p], last[p], p
         }
       }
-    ' "$GTTY_DIRJUMP_DB" "$GTTY_DIRJUMP_ORDER" 2>/dev/null
+    ' "$GTTY_DIRJUMP_DB" "$GTTY_DIRJUMP_ORDER" 2>/dev/null | _gtty_dirjump_blend
     return
   fi
   # Cold-cache fallback (no order file yet): rank by EMA score, ties by recency.
@@ -126,7 +128,30 @@ _gtty_dirjump_rank() {
               if ($1 + 0 > last[p]) last[p] = $1 }
     END     { for (p in score) printf "%.6f\t%d\t%s\n", score[p], last[p], p }
   ' "$GTTY_DIRJUMP_DB" 2>/dev/null \
-    | sort -t $'\t' -k1,1nr -k2,2nr
+    | sort -t $'\t' -k1,1nr -k2,2nr | _gtty_dirjump_blend
+}
+
+# View transform: keep top-STICKY rows in base order, then fill the remaining
+# visible slots (up to 9) with the most-recently-visited of the rest.
+_gtty_dirjump_blend() {
+  awk -F '\t' -v sticky="$GTTY_DIRJUMP_STICKY" '
+    { n++; sc[n]=$1; lt[n]=$2; pa[n]=$3 }
+    END {
+      vis = 0
+      for (i = 1; i <= n && vis < sticky && vis < 9; i++) { out[++vis]=i; shown[i]=1 }
+      nc = 0
+      for (i = 1; i <= n; i++) if (!(i in shown)) cand[++nc] = i
+      for (a = 2; a <= nc; a++) {          # insertion sort by last_epoch desc, ties by score desc
+        x = cand[a]; j = a - 1
+        while (j >= 1 && (lt[cand[j]] < lt[x] || (lt[cand[j]] == lt[x] && sc[cand[j]] < sc[x]))) {
+          cand[j+1] = cand[j]; j--
+        }
+        cand[j+1] = x
+      }
+      for (a = 1; a <= nc && vis < 9; a++) out[++vis] = cand[a]
+      for (a = 1; a <= vis; a++) { i = out[a]; printf "%s\t%s\t%s\n", sc[i], lt[i], pa[i] }
+    }
+  '
 }
 
 # Print the path ranked at position $1 (1 = most used).

@@ -116,13 +116,23 @@ for _gsp_f in "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.profile"; do
   [ -r "$_gsp_f" ] && { . "$_gsp_f"; break; }
 done
 # ble.sh recommended wrap: load detached, run interactive rc, then attach.
-[ -r "$_gsp_dir/blesh/ble.sh" ] && source "$_gsp_dir/blesh/ble.sh" --noattach
+[ -r "$_gsp_dir/blesh/ble.sh" ] && source "$_gsp_dir/blesh/ble.sh" --noattach --rcfile "$_gsp_dir/blesh/blerc"
 [ -r "$HOME/.bashrc" ] && . "$HOME/.bashrc"
 [ -n "${BLE_VERSION-}" ] && ble-attach
 unset _gsp_dir _gsp_f
 EOF
     mkdir -p "$staging/blesh"
     cp -R "$ext/blesh/." "$staging/blesh/"
+    # blerc: host ble.sh config first, then disable modifyOtherKeys for external
+    # commands (else a y/N or sudo prompt reads Shift+<key> as e.g. ^[[27;2;78~).
+    cat > "$staging/blesh/blerc" <<'EOF'
+if [ -f "$HOME/.blerc" ]; then
+  source "$HOME/.blerc"
+elif [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/blesh/init.sh" ]; then
+  source "${XDG_CONFIG_HOME:-$HOME/.config}/blesh/init.sh"
+fi
+bleopt term_modifyOtherKeys_external=0
+EOF
   fi
 
   mkdir -p "${out:h}"

@@ -160,7 +160,8 @@ lsof -i :80 -i :443 ## network - lsof - show network connections on port http+ht
 lsof -ti :{{argument_1}} | xargs kill -9 ## kill process by port number
 sudo lsof -p "$(pgrep -d, -f 'CrossOver|wine')" 2>/dev/null ## Show all details about a running application (e.g. read/writes/network)
 
-nc -zv <SOMEIP> <PORTRANGE> ## network - check a open port on host (e.g. nc -zv 192.168.1.10 1-1000)
+nc -vz <IP> 22 ## network - check if PORT 22 is reachable on a specific HOST/IP
+nc -vz <SOMEIP> <PORTRANGE> ## network - check a open port on host (e.g. nc -zv 192.168.1.10 1-1000)
 nerdctl build -t {{argument_1}}:{{argument_2}} . ## nerdctl - build a new image with specific tag from current folder ## (a Dockerfile needs to exist in same directory)
 nerdctl compose down ## nerdctl - compose down
 nerdctl exec -it {{argument_1}} ping {{argument_2}} ## nerdctl - check if container can reach another container (ping)

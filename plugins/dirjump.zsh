@@ -100,8 +100,38 @@ _gtty_dirjump_record() {
   _gtty_dirjump_reorder
 }
 
+# Drop every trace of dirs that no longer exist on disk from the log + order.
+# Runs on any access (list or jump) so the history stays self-cleaning.
+_gtty_dirjump_sweep() {
+  local db="$GTTY_DIRJUMP_DB" order="$GTTY_DIRJUMP_ORDER" tmp deadfile p
+  [[ -s "$db" ]] || return
+  local -aU paths; local -a dead
+  paths=(${(f)"$(awk -F '\t' 'NF>=2 && length($2) {print $2}' "$db" 2>/dev/null)"})
+  for p in $paths; do [[ -d "$p" ]] || dead+=("$p"); done
+  (( ${#dead} )) || return
+  deadfile="$(mktemp "${db}.dead.XXXXXX")" || return
+  print -rl -- "$dead[@]" > "$deadfile"
+  # Strip matching field-2 paths from the visit log.
+  tmp="$(mktemp "${db}.XXXXXX")" \
+    && awk -F '\t' -v df="$deadfile" '
+         BEGIN { while ((getline d < df) > 0) dead[d] = 1 }
+         !($2 in dead)' "$db" > "$tmp" 2>/dev/null \
+    && mv -f "$tmp" "$db" 2>/dev/null || rm -f "$tmp" 2>/dev/null
+  # Strip matching whole-line paths from the sticky order.
+  if [[ -s "$order" ]]; then
+    tmp="$(mktemp "${order}.XXXXXX")" \
+      && awk -v df="$deadfile" '
+           BEGIN { while ((getline d < df) > 0) dead[d] = 1 }
+           !($0 in dead)' "$order" > "$tmp" 2>/dev/null \
+      && mv -f "$tmp" "$order" 2>/dev/null || rm -f "$tmp" 2>/dev/null
+  fi
+  rm -f "$deadfile" 2>/dev/null
+  _gtty_dirjump_reorder
+}
+
 # Emit dirs in sticky-slot order. Output: score <TAB> last_epoch <TAB> path
 _gtty_dirjump_rank() {
+  _gtty_dirjump_sweep
   [[ -s "$GTTY_DIRJUMP_DB" ]] || return
   local now=${EPOCHSECONDS:-$(date +%s)}
   # Preferred path: emit in the persisted sticky order so numbers stay memorable.

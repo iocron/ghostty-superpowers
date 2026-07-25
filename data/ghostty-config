@@ -58,7 +58,6 @@ font-size = 14
 quick-terminal-position = center
 # shell-integration = detect
 shell-integration = zsh
-# shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo
 split-divider-color = #202020
 theme = Github Dark Default
 unfocused-split-opacity = 0.85
@@ -94,5 +93,5 @@ keybind = super+c=copy_to_clipboard
 
 # Auto-install Ghostty's terminfo on remote hosts over SSH, so ncurses apps
 # like htop don't fail with "Error opening terminal: xterm-ghostty".
-shell-integration-features = ssh-terminfo
+shell-integration-features = sudo,ssh-env,ssh-terminfo,title
 

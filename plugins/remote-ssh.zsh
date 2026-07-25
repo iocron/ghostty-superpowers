@@ -17,6 +17,7 @@ GHOSTTY_SUPERPOWERS="${GHOSTTY_SUPERPOWERS:-${HOME}/.ghostty-superpowers}"
 : "${GSP_SSH_REMOTE_DIR:=.cache/gsp-lite}"   # cached mode: relative to remote $HOME
 : "${GSP_SSH_EPHEMERAL:=0}"                  # 1 = stage in a mktemp dir, wipe on logout
 : "${GSP_SSH_WRAP:=0}"                       # 1 = also shadow the `ssh` command
+: "${GSP_SSH_TERMINFO:=1}"                   # 1 = ensure xterm-ghostty terminfo on the remote
 
 # Reuse one connection for the probe + upload + interactive launch.
 _gsp_ssh_mux=(
@@ -183,6 +184,20 @@ _gsp_ssh_stage() {
   print -r -- "\$HOME/$rd"
 }
 
+# Ensure the remote resolves xterm-ghostty. Checks the remote live on every connect
+# (no local cache), so it self-heals on rebuilt/replaced hosts whose ~/.terminfo was
+# wiped. Returns 0 if present or freshly installed, non-zero if it could not install.
+_gsp_ssh_terminfo() {
+  local dest="$1" ti
+  ti=$(infocmp -x xterm-ghostty 2>/dev/null) || return 1
+  [[ -n "$ti" ]] || return 1
+  print -r -- "$ti" | command ssh "${_gsp_ssh_mux[@]}" "$dest" '
+    infocmp xterm-ghostty >/dev/null 2>&1 && exit 0
+    command -v tic >/dev/null 2>&1 || exit 1
+    mkdir -p "$HOME/.terminfo" 2>/dev/null && tic -x - 2>/dev/null && exit 0
+    exit 1'
+}
+
 _gsp_ssh() {
   emulate -L zsh
   setopt localoptions no_nomatch
@@ -227,19 +242,26 @@ _gsp_ssh() {
     command ssh "$@"; return
   fi
 
+  # Ensure the remote has xterm-ghostty terminfo; downgrade TERM only if we cannot
+  # install it (e.g. no tic on the remote), so the shell still works either way.
+  local term_prefix=""
+  if [[ "$GSP_SSH_TERMINFO" == 1 ]] && ! _gsp_ssh_terminfo "$dest"; then
+    term_prefix="TERM=xterm-256color "
+  fi
+
   # Cached mode uses `exec` (no cleanup); ephemeral rm's the mktemp $rdir on exit.
   local launch
   if [[ "$GSP_SSH_EPHEMERAL" == 1 ]]; then
     if [[ "$flavor" == zsh ]]; then
-      launch="ZDOTDIR=\"$rdir\" zsh -i; rm -rf \"$rdir\""
+      launch="${term_prefix}ZDOTDIR=\"$rdir\" zsh -i; rm -rf \"$rdir\""
     else
-      launch="bash --rcfile \"$rdir/bashrc\" -i; rm -rf \"$rdir\""
+      launch="${term_prefix}bash --rcfile \"$rdir/bashrc\" -i; rm -rf \"$rdir\""
     fi
   else
     if [[ "$flavor" == zsh ]]; then
-      launch="ZDOTDIR=\"$rdir\" exec zsh -i"
+      launch="${term_prefix}ZDOTDIR=\"$rdir\" exec zsh -i"
     else
-      launch="exec bash --rcfile \"$rdir/bashrc\" -i"
+      launch="${term_prefix}exec bash --rcfile \"$rdir/bashrc\" -i"
     fi
   fi
 

@@ -1,6 +1,14 @@
 7zz a -p -mhe {{argument_1}}.7z {{argument_2}} ## 7z - Compress and Encrypt File/Folder with AES-256 ## You can install 7zz with: brew install 7-zip
 7zz x FILENAME.7z ## Extract 7zip file
 
+adb -s $D shell am start -a android.settings.SETTINGS           # main Settings
+adb -s $D shell am start -a android.settings.WIFI_SETTINGS      # Wi-Fi
+adb -s $D shell am start -a android.settings.BLUETOOTH_SETTINGS # Bluetooth
+adb -s $D shell am start -a android.settings.DISPLAY_SETTINGS   # brightness
+adb -s $D shell am start -a android.settings.SOUND_SETTINGS     # volume
+
+arp -a ## show my ARP Cache (shows my IP ↔ MAC mappings)
+
 aws ce get-cost-and-usage --time-period Start={{argument_1}},End={{argument_2}} --granularity MONTHLY --metrics \"BlendedCost\" --group-by Type=DIMENSION,Key=USAGE_TYPE | jq '.ResultsByTime[].Groups[] | select(.Metrics.BlendedCost.Amount | tonumber >= 1) | {UsageType: .Keys[0], BlendedCost: .Metrics.BlendedCost.Amount}' ## aws get usage costs
 aws configure sso ## Setup AWS CLI SSO Login
 aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue={{argument_1}} --max-results 50 --no-cli-pager --output json --start-time \"{{argument_2}}T00:00:00Z\" --end-time \"{{argument_3}}T23:59:59Z\" ## aws - Cloudtrail lookup-events of specific attribute
@@ -65,7 +73,22 @@ dig TXT _dmarc.{{domain}} | grep DMARC ## dig - Mailcheck DMARC
 dig TXT {{domain}} | grep spf ## dig - Mailcheck SPF
 dig TXT {{mailProviderPrefix}}._domainkey.{{domain}} | grep DKIM ## dig - Mailcheck DKIM
 
-docker exec -it {{argument_4}} psql postgresql://{{argument_1}}:{{argument_2}}@postgres:5432/{{argument_3}} ## docker test postgres sql connection
+docker compose exec <container> env       ## Show all Env Variables inside a Container
+docker compose exec -it <container> bash  ## open shell inside container
+docker compose exec -it <container> psql postgresql://<user>:<password>@postgres:5432/<database> ## test PostgreSQL connection
+docker compose logs -f                    ## Follow logs
+docker compose logs --tail 100            ## Show last 100 log entries
+docker compose up -d                      ## Start services
+docker compose down                       ## Stop and remove services
+docker compose ps                         ## list running services
+
+docker exec <container> env         ## Show all Env Variables inside a Container
+docker exec -it <container> bash    ## open shell inside container
+docker exec -it <container> psql postgresql://<user>:<password>@postgres:5432/<database> ## test PostgreSQL connection
+docker logs -f                      ## Follow logs
+docker logs --tail 100              ## Show last 100 log entries
+docker ps  ## list running containers
+
 docker run --network=\"host\" --dns=\"99.99.999.99\" curlimages/curl -LsSI --insecure https://gitlab.example.com ## Docker run image with custom DNS Server (+ignored tls)
 docker run --rm -it --privileged --pid host -p 7071:7071 -v /run:/run -v /boot:/boot -v /lib/modules:/lib/modules -v /sys/kernel/debug:/sys/kernel/debug -v /sys/fs/cgroup:/sys/fs/cgroup -v /sys/fs/bpf:/sys/fs/bpf -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket ghcr.io/parca-dev/parca-agent:v0.39.1 /bin/parca-agent  --remote-store-address={{argument_1}}:7070 --remote-store-insecure ## parca agent (docker) - setup
 docker run --rm -it mcr.microsoft.com/azure-cli bash -c \"curl -L -o /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x /usr/local/bin/jq && jq --version\" ## AzureCLI - Docker run with azure-cli with jq installed
@@ -111,7 +134,11 @@ git push --tags ## git push tags ## Add --force if you need to overwrite a exist
 git push -u origin main ## git - push + set upstream (remote) tracking
 git remote -v ## git - show all remote urls
 git remote add origin {{remoteURL}} ## git - add new remote
-git rm --cached -r {{argument_1}} ## git rm - remove already versioned folder/files
+git rm --cached -r {{argument_1}} ## untrack/remove committed files ignored by .gitignore
+git stash apply ## apply the last stash
+git stash list  ## list all stashes
+git stash pop   ## apply and remove latest stash
+
 GIT_SSH_COMMAND='ssh -i ~/.ssh/{{argument_1}}' git clone {{argument_2}} ## git clone as another user with another ssh key
 gitlab-ci-local --variables-file .env --stage deploy ## gitlab-ci-local - Test gitlab pipeline locally (+with env vars)
 gitlab-runner exec docker build_node ## gitlab-runner exec docker runner (local) ## test a build step
@@ -119,6 +146,7 @@ gitlab-runner exec docker build_node ## gitlab-runner exec docker runner (local)
 godot --check-only --script {{file-path-to-gd-script}} ## Godot - Syntax/Lint check for specific gd script (use full godot application path if not aliased)
 /Applications/Godot.app/Contents/MacOS/Godot --editor --path /PathToMyGodotProject ## Start Godot from terminal with custom project path on macos (--verbose for better debugging)
 
+go clean -cache ## free up diskspace / go cache
 go test -v ./... -run {{TestFunctionName}} ## misc - go test specific function/test
 go vet ./... ## go - check if any golang errors exist
 govulncheck ./... ## golang - check all dependencies for vulnerabilities ## (see https://github.com/golang/vuln)  How to install: 1. If you need to install:      go install golang.org/x/vuln/cmd/govulncheck@latest 2. Then add to your /.zshrc this:     export PATH=$(go env GOPATH)/bin:$PATH
@@ -162,6 +190,10 @@ sudo lsof -p "$(pgrep -d, -f 'CrossOver|wine')" 2>/dev/null ## Show all details 
 
 nc -vz <IP> 22 ## network - check if PORT 22 is reachable on a specific HOST/IP
 nc -vz <SOMEIP> <PORTRANGE> ## network - check a open port on host (e.g. nc -zv 192.168.1.10 1-1000)
+
+netbird down && netbird up --allow-server-ssh --enable-ssh-root --ssh-jwt-cache-ttl 3600 ## Enable Netbird with SSH+jwt-cache-ttl
+netbird status -j | jq '[.peers.details[] | {fqdn, netbirdIp, status}] | sort_by(.fqdn) | .[]' ## Show only Name+IP of all devices
+
 nerdctl build -t {{argument_1}}:{{argument_2}} . ## nerdctl - build a new image with specific tag from current folder ## (a Dockerfile needs to exist in same directory)
 nerdctl compose down ## nerdctl - compose down
 nerdctl exec -it {{argument_1}} ping {{argument_2}} ## nerdctl - check if container can reach another container (ping)
@@ -174,7 +206,8 @@ netstat -an | grep {{argument_1}} ## netstat - Check Connections on PORT
 nmap -p 80,443 -sV --version-all {{argument_1}} ## nmap - aggressive search for webserver version
 nmap -p- -sV --version-all {{argument_1}} ## nmap - scan all ports + aggressive version probing
 
-nohup {{argument_1}} > /dev/null 2>&1 & ## Run command fully in Background ## Tip: Use "jobs" command to list running jobs (of current session)
+nohup {{argument_1}} > app.log 2>&1 & ## Run command in background + write to log
+nohup {{argument_1}} > /dev/null 2>&1 & ## Run command in background ## Tip: Use "jobs" command to list running jobs (of current session)
 nohup sudo ./parca-agent --node={{argument_1}} --remote-store-address={{argument_2}} > parca-agent.log 2>&1 & ## parca-agent run in background ## Run this on a Server that you want to be inspected by Parca, the Data gets sent to the Remote Parca Control Server
 
 mail ## Use "help" for more info after command execution. Use "1" to see the first mail
@@ -202,6 +235,8 @@ pssh -i -H {{host1}} -H {{host2}} df -h / ## ssh - pssh - \"df -h /\" (ssh comma
 rg -g '!{node_modules,.git,tests}/**' mySearchString ## exclude specific files/folder from search)
 rsync -avz --filter=':- .gitignore' {{sourcePath}} {{remoteServer}}:{{remotePath}} ## rsync from source to target (+ignore files from .gitignore)
 rustscan --top -a IP_ADDRESSES ## Scan the top 1000 ports of IP / CIDRs (similar to nmap)
+
+scrcpy -s MYIP:5555 --max-size 1024 --video-bit-rate 2M --max-fps 20 ## ScreenMirror to a device
 
 setenv ## Show all modified ZSH Shell Options
 

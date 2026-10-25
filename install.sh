@@ -246,11 +246,11 @@ install_full() {
   install_base
 
   if (( HAS_BREW )); then
-    brew install btop cloc fd helix go gopls lazygit ollama rg tldr || true
+    brew install btop cloc fd helix go gopls lazygit ollama rg tlrc || true
   elif (( HAS_PACMAN )); then
-    $SUDO pacman -S btop cloc fd helix go gopls lazygit ripgrep tldr || true
+    $SUDO pacman -S btop cloc fd helix go gopls lazygit ripgrep tlrc || true
   elif (( HAS_APT )); then
-    $SUDO apt install -y btop cloc fd-find helix golang gopls lazygit ripgrep tldr || true
+    $SUDO apt install -y btop cloc fd-find helix golang gopls lazygit ripgrep tlrc || true
   fi
 
   if (( HAS_PACMAN || HAS_APT )); then

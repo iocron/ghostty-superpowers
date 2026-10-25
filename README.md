@@ -21,7 +21,7 @@ Ghostty Terminal with Zsh, a simple and awesome UI, advanced autocomplete, fzf, 
     ./install.sh
     ```
     - **Minimal** - Ghostty + config, zsh, the zsh plugins, fzf, and the Hack Nerd Font.
-    - **Full** - everything in Minimal plus extra tools (btop, fd, helix, lazygit, ripgrep, tldr, …) and the AI stack (Ollama + a default model, pulled for you).
+    - **Full** - everything in Minimal plus extra tools (btop, fd, helix, lazygit, ripgrep, tlrc, …) and the AI stack (Ollama + a default model, pulled for you).
 4. (Re)start Ghostty (on macOS located in /Applications/Ghostty.app)
 
 Enjoy your new Ghostty Experience :)
